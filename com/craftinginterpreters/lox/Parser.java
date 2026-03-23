@@ -1,5 +1,6 @@
 package com.craftinginterpreters.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
@@ -14,12 +15,31 @@ class Parser {
 		this.tokens = tokens;
 	}
 
-	Expr parse() {
-		try {
-			return expression();
-		} catch (ParseError error) {
-			return null;
+	List<Stmt> parse() {
+		List<Stmt> statements = new ArrayList<>();
+		while (!isAtEnd()) {
+			statements.add(statement());
 		}
+
+		return statements;
+	}
+
+	private Stmt statement() {
+		if (match(PRINT)) return printStatement();
+
+		return expressionStatement();
+	}
+
+	private Stmt printStatement() {
+		Expr value = expression();
+		consume(SEMICOLON, "Expect ';' after value.");
+		return new Stmt.Print(value);
+	}
+
+	private Stmt expressionStatement() {
+		Expr expr = expression();
+		consume(SEMICOLON, "Expect ';' after expression.");
+		return new Stmt.Expression(expr);
 	}
 
 	private Expr expression() {
@@ -161,6 +181,37 @@ class Parser {
 				case WHILE:
 				case PRINT:
 				case RETURN:
+				case LEFT_BRACE:
+				case RIGHT_BRACE:
+				case SEMICOLON:
+				case EOF:
+				case THIS:
+				case DOT:
+				case STAR:
+				case AND:
+				case IDENTIFIER:
+				case COMMA:
+				case LEFT_PAREN:
+				case SLASH:
+				case BANG_EQUAL:
+				case BANG:
+				case RIGHT_PAREN:
+				case SUPER:
+				case ELSE:
+				case EQUAL_EQUAL:
+				case NIL:
+				case FALSE:
+				case LESS_EQUAL:
+				case PLUS:
+				case EQUAL:
+				case STRING:
+				case NUMBER:
+				case LESS:
+				case TRUE:
+				case GREATER_EQUAL:
+				case MINUS:
+				case GREATER:
+				case OR:
 					return;
 			}
 

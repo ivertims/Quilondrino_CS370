@@ -1,14 +1,30 @@
 package com.craftinginterpreters.lox;
 
-class Interpreter implements Expr.Visitor<Object> {
+import java.util.List;
+
+class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	private Object evaluate(Expr expr) {
 		return expr.accept(this);
+	}
+
+	private void execute(Stmt stmt) {
+		stmt.accept(this);
 	}
 
 	void interpret(Expr expression) {
 		try {
 			Object value = evaluate(expression);
 			System.out.println(stringify(value));
+		} catch (RuntimeError error) {
+			Lox.runtimeError(error);
+		}
+	}
+
+	void interpret(List<Stmt> statements) {
+		try {
+			for (Stmt statement : statements) {
+				execute(statement);
+			}
 		} catch (RuntimeError error) {
 			Lox.runtimeError(error);
 		}
@@ -102,6 +118,36 @@ class Interpreter implements Expr.Visitor<Object> {
 					return (String)left + (String)right;
 				}
 				throw new RuntimeError(expr.operator, "RAH");
+			case FUN:
+			case RETURN:
+			case SUPER:
+			case FALSE:
+			case COMMA:
+			case OR:
+			case RIGHT_BRACE:
+			case RIGHT_PAREN:
+			case LEFT_PAREN:
+			case WHILE:
+			case PRINT:
+			case AND:
+			case SEMICOLON:
+			case EOF:
+			case BANG:
+			case TRUE:
+			case DOT:
+			case EQUAL:
+			case STRING:
+			case NUMBER:
+			case LEFT_BRACE:
+			case CLASS:
+			case THIS:
+			case VAR:
+			case ELSE:
+			case IF:
+			case NIL:
+			case FOR:
+			case IDENTIFIER:
+				break;
 		}
 
 		return null;
@@ -118,5 +164,18 @@ class Interpreter implements Expr.Visitor<Object> {
 		if (a == null) return false;
 
 		return a.equals(b);
+	}
+
+	@Override
+	public Void visitExpressionStmt(Stmt.Expression stmt) {
+		evaluate(stmt.expression);
+		return null;
+	}
+
+	@Override
+	public Void visitPrintStmt(Stmt.Print stmt) {
+		Object value = evaluate(stmt.expression);
+		System.out.println(stringify(value));
+		return null;
 	}
 }
